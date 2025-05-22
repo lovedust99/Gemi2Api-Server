@@ -152,19 +152,19 @@ class ModelList(BaseModel):
 
 
 # Authentication dependency
-async def verify_api_key(custom_api_key: str = Header(None, alias=CUSTOM_AUTH_HEADER_NAME)):
+async def verify_api_key(custom_api_key: str = Header(None, alias="X-API-Key")):
 	if not API_KEY:
 		logger.warning("API key validation skipped - no API_KEY set in environment")
 		return
 
 	if not custom_api_key:
-		raise HTTPException(status_code=401, detail=f"Missing {CUSTOM_AUTH_HEADER_NAME} header")
+		raise HTTPException(status_code=401, detail=f"Missing X-API-Key header")
 	
 	if custom_api_key != API_KEY:
-		logger.warning(f"Invalid API key received in {CUSTOM_AUTH_HEADER_NAME} header.")
+		logger.warning(f"Invalid API key received in X-API-Key header.")
 		raise HTTPException(status_code=401, detail="Invalid API key")
 	
-	logger.info(f"Successfully authenticated using {CUSTOM_AUTH_HEADER_NAME} header.")
+	logger.info(f"Successfully authenticated using X-API-Key header.")
 	return custom_api_key 
 
 
