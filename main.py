@@ -152,24 +152,24 @@ class ModelList(BaseModel):
 
 
 # Authentication dependency
-async def verify_api_key(verify_api_key: str = Header(None)):
+async def verify_api_key(x_user_token: str = Header(None, alias="X-User-Token")):
 	if not API_KEY:
 		# If API_KEY is not set in environment, skip validation (for development)
 		logger.warning("API key validation skipped - no API_KEY set in environment")
 		return
 
-	if not verify_api_key:
-		raise HTTPException(status_code=401, detail="Missing verify_api_key header")
+	if not x_user_token:
+		raise HTTPException(status_code=401, detail="Missing x_user_token header")
 	
 	try:
-		scheme, token = verify_api_key.split()
+		scheme, token = x_user_token.split()
 		if scheme.lower() != "bearer":
 			raise HTTPException(status_code=401, detail="Invalid authentication scheme. Use Bearer token")
 		
 		if token != API_KEY:
 			raise HTTPException(status_code=401, detail="Invalid API key")
 	except ValueError:
-		raise HTTPException(status_code=401, detail="Invalid verify_api_key format. Use 'Bearer YOUR_API_KEY'")
+		raise HTTPException(status_code=401, detail="Invalid x_user_token format. Use 'Bearer YOUR_API_KEY'")
 	
 	return token
 
