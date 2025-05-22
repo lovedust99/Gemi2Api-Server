@@ -152,26 +152,34 @@ class ModelList(BaseModel):
 
 
 # Authentication dependency
-async def verify_api_key(x_user_token: str = Header(None, alias="X-User-Token")):
-	if not API_KEY:
-		# If API_KEY is not set in environment, skip validation (for development)
-		logger.warning("API key validation skipped - no API_KEY set in environment")
-		return
+async def verify_api_key(request: Request, x_user_token: str = Header(None)):
+    # 打印所有请求头
+    logger.info("Request headers:")
+    for header_name, header_value in request.headers.items():
+        # 敏感信息只打印前5个字符
+        if header_name.lower() in ['x-user-token', 'authorization']:
+            header_value = f"{header_value[:5]}..." if header_value else "None"
+        logger.info(f"  {header_name}: {header_value}")
 
-	if not x_user_token:
-		raise HTTPException(status_code=401, detail="Missing x_user_token header")
-	
-	try:
-		scheme, token = x_user_token.split()
-		if scheme.lower() != "bearer":
-			raise HTTPException(status_code=401, detail="Invalid authentication scheme. Use Bearer token")
-		
-		if token != API_KEY:
-			raise HTTPException(status_code=401, detail="Invalid API key")
-	except ValueError:
-		raise HTTPException(status_code=401, detail="Invalid x_user_token format. Use 'Bearer YOUR_API_KEY'")
-	
-	return token
+    if not API_KEY:
+        # If API_KEY is not set in environment, skip validation (for development)
+        logger.warning("API key validation skipped - no API_KEY set in environment")
+        return
+
+    if not x_user_token:
+        raise HTTPException(status_code=401, detail="Missing X-User-Token header")
+    
+    try:
+        scheme, token = x_user_token.split()
+        if scheme.lower() != "bearer":
+            raise HTTPException(status_code=401, detail="Invalid authentication scheme. Use Bearer token")
+        
+        if token != API_KEY:
+            raise HTTPException(status_code=401, detail="Invalid API key")
+    except ValueError:
+        raise HTTPException(status_code=401, detail="Invalid x_user_token format. Use 'Bearer YOUR_API_KEY'")
+    
+    return token
 
 
 # Simple error handler middleware
